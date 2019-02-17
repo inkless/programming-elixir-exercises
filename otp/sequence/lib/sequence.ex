@@ -3,16 +3,9 @@ defmodule Sequence do
   Documentation for Sequence.
   """
 
-  @doc """
-  Hello world.
+  use Application
 
-  ## Examples
-
-      iex> Sequence.hello()
-      :world
-
-  """
-  def hello do
-    :world
+  def start(type, _args) do
+    Sequence.Application.start(type, Application.get_env(:sequence, :initial_number))
   end
 end

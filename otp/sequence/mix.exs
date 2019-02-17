@@ -14,8 +14,12 @@ defmodule Sequence.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger],
-      mod: {Sequence.Application, []}
+      mod: {Sequence, []},
+      env: [initial_number: 456],
+      registered: [
+        Sequence.Server
+      ],
+      extra_applications: [:logger]
     ]
   end
 
