@@ -8,6 +8,13 @@
 # ---
 defmodule Sequence.Server do
   use GenServer
+  require Logger
+
+  @vsn "1"
+
+  defmodule State do
+    defstruct current_number: 0, delta: 1
+  end
 
   #####
   # External API
@@ -17,7 +24,8 @@ defmodule Sequence.Server do
   end
 
   def next_number do
-    GenServer.call(__MODULE__, :next_number)
+    number = GenServer.call(__MODULE__, :next_number)
+    "The next number is #{number}"
   end
 
   def increment_number(delta) do
@@ -25,7 +33,7 @@ defmodule Sequence.Server do
   end
 
   def status do
-    :sys.get_state __MODULE__
+    :sys.get_state(__MODULE__)
   end
 
   #####
@@ -35,12 +43,12 @@ defmodule Sequence.Server do
     {:ok, Sequence.Stash.get()}
   end
 
-  def handle_call(:next_number, _from, current_number) do
-    {:reply, current_number, current_number + 1}
+  def handle_call(:next_number, _from, %{current_number: n} = state) do
+    {:reply, n, %State{state | current_number: n + state.delta}}
   end
 
-  def handle_cast({:increment_number, delta}, current_number) do
-    {:noreply, current_number + delta}
+  def handle_cast({:increment_number, delta}, state) when is_number(delta) do
+    {:noreply, %State{state | delta: delta}}
   end
 
   def format_status(_reason, [_pdict, state]) do
@@ -50,4 +58,16 @@ defmodule Sequence.Server do
   def terminate(_reason, current_number) do
     Sequence.Stash.update(current_number)
   end
+
+  # def code_change("0", old_state = current_number, _extra) do
+  #   new_state = %State{
+  #     current_number: current_number,
+  #     delta: 1
+  #   }
+  #
+  #   Logger.info("Changing code from 0 to 1")
+  #   Logger.info(inspect(old_state))
+  #   Logger.info(inspect(new_state))
+  #   {:ok, new_state}
+  # end
 end
